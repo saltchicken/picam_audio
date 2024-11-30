@@ -1,43 +1,36 @@
-import socket
 import pyaudio
+import zmq
+import opuslib
+import numpy as np
 
-# Set up audio playback parameters
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 32000
-CHUNK = int(1024 / 4)
+# Set up ZeroMQ context and subscriber socket (server side)
+context = zmq.Context()
+socket = context.socket(zmq.SUB)
+socket.bind("tcp://*:50003")  # Server binds to port 5555 to listen for clients
+socket.setsockopt_string(zmq.SUBSCRIBE, "")  # Subscribe to all messages
 
-# Set up TCP connection
-HOST = '0.0.0.0'  # Listen on all available interfaces
-PORT = 50002
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind((HOST, PORT))
-server_socket.listen(1)
-
-print(f"Server listening on {HOST}:{PORT}...")
-
-# Wait for a client to connect
-client_socket, client_address = server_socket.accept()
-print(f"Connection from {client_address}")
-
-# Set up PyAudio for playback
+# Set up PyAudio for audio playback (server side)
 p = pyaudio.PyAudio()
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
+stream = p.open(format=pyaudio.paInt16,
+                channels=1,
+                rate=32000,
                 output=True,
-                frames_per_buffer=CHUNK)
+                frames_per_buffer=1024)
 
-try:
-    while True:
-        data = client_socket.recv(CHUNK)
-        if not data:
-            break
-        stream.write(data)  # Play the received audio data
-finally:
-    client_socket.close()
-    server_socket.close()
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
+# Set up Opus decoder (server side)
+frame_size = 960  # 20ms at 48 kHz for stereo, 960 samples per frame
+decoder = opuslib.Decoder(32000, 1)  # 48000 Hz sample rate, mono
+
+while True:
+    # Receive compressed Opus data from the client
+    opus_data = socket.recv()
+
+    # Decode with Opus
+    decoded_data = decoder.decode(opus_data, frame_size, decode_fec=False)
+
+    # Convert decoded data back to numpy array for playback
+    pcm_data = np.frombuffer(decoded_data, dtype=np.int16)
+
+    # Play the decoded PCM audio
+    stream.write(pcm_data.tobytes())
 

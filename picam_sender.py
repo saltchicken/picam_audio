@@ -1,35 +1,35 @@
-import socket
 import pyaudio
+import zmq
+import opuslib
+import numpy as np
 
-print("hello")
+# Set up ZeroMQ context and publisher socket (client side)
+context = zmq.Context()
+socket = context.socket(zmq.PUSH)  # Client will push data to the server
+socket.connect("tcp://10.0.0.3:5003")  # Connect to the server at port 5555
 
-# Set up audio capture parameters
-FORMAT = pyaudio.paInt16
-CHANNELS = 1
-RATE = 32000
-CHUNK = int(1024 / 4)
-
-# Set up TCP connection
-HOST = '10.0.0.3'  # Server IP address
-PORT = 50002
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect((HOST, PORT))
-
-# Set up PyAudio for recording
+# Set up PyAudio for audio capture (client side)
 p = pyaudio.PyAudio()
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
+stream = p.open(format=pyaudio.paInt16,
+                channels=1,
+                rate=32000,
                 input=True,
-                frames_per_buffer=CHUNK)
+                frames_per_buffer=1024)
 
-try:
-    while True:
-        data = stream.read(CHUNK)
-        client_socket.sendall(data)  # Send audio data over TCP
-finally:
-    client_socket.close()
-    stream.stop_stream()
-    stream.close()
-    p.terminate()
+# Set up Opus encoder (client side)
+frame_size = 960  # 20ms at 48 kHz for stereo, 960 samples per frame
+encoder = opuslib.Encoder(32000, 1, opuslib.APPLICATION_AUDIO)  # 48000 Hz sample rate, mono
+
+while True:
+    # Read raw PCM data from microphone
+    audio_data = stream.read(1024)
+
+    # Convert to numpy array for easier handling
+    pcm_data = np.frombuffer(audio_data, dtype=np.int16)
+
+    # Encode with Opus
+    opus_data = encoder.encode(pcm_data.tobytes(), frame_size)
+
+    # Send compressed Opus data to the server
+    socket.send(opus_data)
 
