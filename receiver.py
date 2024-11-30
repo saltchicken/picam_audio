@@ -5,7 +5,7 @@ import socket
 CHUNK = 1024  # Same as sender
 FORMAT = pyaudio.paInt16  # Same as sender
 CHANNELS = 1  # Same as sender
-RATE = 44100  # Same as sender
+RATE = 32000  # Same as sender
 HOST = '0.0.0.0'  # Listen on all interfaces
 PORT = 5000  # Port to receive data
 
