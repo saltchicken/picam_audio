@@ -1,0 +1,16 @@
+[Unit]
+Description=Picam Audio
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python /home/saltchicken/picam_audio/picam_sender.py
+WorkingDirectory=/home/saltchicken/picam_audio
+StandardOutput=journal
+StandardError=journal
+Restart=always
+User=saltchicken 
+Group=saltchicken
+
+[Install]
+WantedBy=multi-user.target
+

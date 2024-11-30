@@ -1,6 +1,8 @@
 import socket
 import pyaudio
 
+print("hello")
+
 # Set up audio capture parameters
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
