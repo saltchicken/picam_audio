@@ -5,7 +5,7 @@ import pyaudio
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 32000
-CHUNK = 1024 / 4
+CHUNK = int(1024 / 4)
 
 # Set up TCP connection
 HOST = '0.0.0.0'  # Listen on all available interfaces
