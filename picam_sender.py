@@ -25,8 +25,14 @@ stream = p.open(format=FORMAT,
 
 try:
     while True:
-        data = stream.read(CHUNK)
+        try:
+            data = stream.read(CHUNK)
+        except:
+            continue
         client_socket.sendall(data)  # Send audio data over TCP
+except:
+    print("Something bad happened")
+
 finally:
     client_socket.close()
     stream.stop_stream()
