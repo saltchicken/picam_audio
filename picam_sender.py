@@ -6,7 +6,7 @@ CHUNK = 1024  # Number of audio samples per frame
 FORMAT = pyaudio.paInt16  # 16-bit resolution
 CHANNELS = 1  # Mono audio
 RATE = 32000  # Sampling rate in Hz
-HOST = '0.0.0.0'  # Replace with receiver's IP address
+HOST = '10.0.0.3'  # Replace with receiver's IP address
 PORT = 5000  # Port to send data
 
 device_index = 0
