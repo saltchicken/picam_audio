@@ -1,39 +1,43 @@
-import pyaudio
 import socket
+import pyaudio
 
-# Configuration
-CHUNK = 1024  # Same as sender
-FORMAT = pyaudio.paInt16  # Same as sender
-CHANNELS = 1  # Same as sender
-RATE = 32000  # Same as sender
-HOST = '0.0.0.0'  # Listen on all interfaces
-PORT = 5000  # Port to receive data
+# Set up audio playback parameters
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 32000
+CHUNK = 1024
 
-# Initialize PyAudio
-audio = pyaudio.PyAudio()
-stream = audio.open(format=FORMAT, channels=CHANNELS,
-                    rate=RATE, output=True, frames_per_buffer=CHUNK)
+# Set up TCP connection
+HOST = '0.0.0.0'  # Listen on all available interfaces
+PORT = 50002
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind((HOST, PORT))
+server_socket.listen(1)
 
-# Initialize socket
-# sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-sock.bind((HOST, PORT))
-sock.listen(1)
+print(f"Server listening on {HOST}:{PORT}...")
 
-print("Waiting for connection...")
-conn, addr = sock.accept()
-print(f"Connected by {addr}")
+# Wait for a client to connect
+client_socket, client_address = server_socket.accept()
+print(f"Connection from {client_address}")
 
-print("Receiving audio...")
+# Set up PyAudio for playback
+p = pyaudio.PyAudio()
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                output=True,
+                frames_per_buffer=CHUNK)
+
 try:
     while True:
-        data, addr = sock.recvfrom(CHUNK * 2)  # 2 bytes per sample
-        stream.write(data)
-except KeyboardInterrupt:
-    print("Stopping...")
+        data = client_socket.recv(CHUNK)
+        if not data:
+            break
+        stream.write(data)  # Play the received audio data
 finally:
+    client_socket.close()
+    server_socket.close()
     stream.stop_stream()
     stream.close()
-    audio.terminate()
-    sock.close()
+    p.terminate()
 
