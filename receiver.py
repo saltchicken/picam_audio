@@ -20,6 +20,10 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 sock.bind((HOST, PORT))
 sock.listen(1)
 
+print("Waiting for connection...")
+conn, addr = sock.accept()
+print(f"Connected by {addr}")
+
 print("Receiving audio...")
 try:
     while True:
