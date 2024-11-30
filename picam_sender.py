@@ -17,7 +17,9 @@ stream = audio.open(format=FORMAT, channels=CHANNELS,
                     rate=RATE, input=True, input_device_index=device_index, frames_per_buffer=CHUNK)
 
 # Initialize socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect((HOST, PORT))
 
 print("Streaming audio...")
 try:
