@@ -1,32 +1,43 @@
+import socket
 import pyaudio
-import zmq
-from pydub import AudioSegment
-from io import BytesIO
 
-# Set up ZeroMQ context and subscriber socket (server side)
-context = zmq.Context()
-socket = context.socket(zmq.SUB)
-socket.bind("tcp://*:50003")  # Server binds to port 5555 to listen for clients
-socket.setsockopt_string(zmq.SUBSCRIBE, "")  # Subscribe to all messages
+# Set up audio playback parameters
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 32000
+CHUNK = int(1024 / 4)
 
-# Set up PyAudio for audio playback (server side)
+# Set up TCP connection
+HOST = '0.0.0.0'  # Listen on all available interfaces
+PORT = 50002
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind((HOST, PORT))
+server_socket.listen(1)
+
+print(f"Server listening on {HOST}:{PORT}...")
+
+# Wait for a client to connect
+client_socket, client_address = server_socket.accept()
+print(f"Connection from {client_address}")
+
+# Set up PyAudio for playback
 p = pyaudio.PyAudio()
-stream = p.open(format=pyaudio.paInt16,
-                channels=1,
-                rate=32000,
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
                 output=True,
-                frames_per_buffer=1024)
+                frames_per_buffer=CHUNK)
 
-while True:
-    # Receive compressed MP3 data from the client
-    mp3_data = socket.recv()
-
-    # Decode MP3 data with pydub
-    audio = AudioSegment.from_mp3(BytesIO(mp3_data))
-
-    # Convert the audio to raw PCM data
-    pcm_data = audio.set_frame_rate(32000).set_channels(1).set_sample_width(2).raw_data
-
-    # Play the decoded PCM audio
-    stream.write(pcm_data)
+try:
+    while True:
+        data = client_socket.recv(CHUNK)
+        if not data:
+            break
+        stream.write(data)  # Play the received audio data
+finally:
+    client_socket.close()
+    server_socket.close()
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
 

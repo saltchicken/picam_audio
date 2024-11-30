@@ -1,38 +1,35 @@
+import socket
 import pyaudio
-import zmq
-from pydub import AudioSegment
-from io import BytesIO
-import numpy as np
 
-# Set up ZeroMQ context and publisher socket (client side)
-context = zmq.Context()
-socket = context.socket(zmq.PUSH)  # Client will push data to the server
-socket.connect("tcp://10.0.0.3:50003")  # Connect to the server at port 5555
+print("hello")
 
-# Set up PyAudio for audio capture (client side)
+# Set up audio capture parameters
+FORMAT = pyaudio.paInt16
+CHANNELS = 1
+RATE = 32000
+CHUNK = int(1024 / 4)
+
+# Set up TCP connection
+HOST = '10.0.0.3'  # Server IP address
+PORT = 50002
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect((HOST, PORT))
+
+# Set up PyAudio for recording
 p = pyaudio.PyAudio()
-stream = p.open(format=pyaudio.paInt16,
-                channels=1,
-                rate=32000,
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
                 input=True,
-                frames_per_buffer=1024)
+                frames_per_buffer=CHUNK)
 
-while True:
-    # Read raw PCM data from microphone
-    audio_data = stream.read(1024)
-
-    # Convert PCM data to AudioSegment for MP3 encoding
-    audio = AudioSegment(
-        data=audio_data,
-        sample_width=2,
-        frame_rate=32000,
-        channels=1
-    )
-
-    # Encode the audio to MP3 in memory
-    mp3_data = BytesIO()
-    audio.export(mp3_data, format="mp3")
-
-    # Send the MP3 data to the server
-    socket.send(mp3_data.getvalue())
+try:
+    while True:
+        data = stream.read(CHUNK)
+        client_socket.sendall(data)  # Send audio data over TCP
+finally:
+    client_socket.close()
+    stream.stop_stream()
+    stream.close()
+    p.terminate()
 
