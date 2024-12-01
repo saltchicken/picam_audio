@@ -12,7 +12,7 @@ stream = p.open(format=FORMAT,
                 rate=RATE,
                 input=True,
                 frames_per_buffer=CHUNK)
-_ = input_stream.read(CHUNK, exception_on_overflow=False)
+_ = stream.read(CHUNK, exception_on_overflow=False)
 
 # Set up TCP connection
 HOST = '10.0.0.3'  # Server IP address
