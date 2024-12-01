@@ -6,13 +6,6 @@ CHANNELS = 1
 RATE = 44100
 CHUNK = 1024
 
-p = pyaudio.PyAudio()
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                input=True,
-                frames_per_buffer=CHUNK)
-_ = stream.read(CHUNK, exception_on_overflow=False)
 
 # Set up TCP connection
 HOST = '10.0.0.3'  # Server IP address
@@ -21,6 +14,13 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
 
 # Set up PyAudio for recording
+p = pyaudio.PyAudio()
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK)
+_ = stream.read(CHUNK, exception_on_overflow=False)
 
 try:
     while True:
