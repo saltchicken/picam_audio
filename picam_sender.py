@@ -15,7 +15,7 @@ stream = p.open(format=FORMAT,
 _ = stream.read(CHUNK, exception_on_overflow=False)
 
 # Set up TCP connection
-HOST = '10.0.0.3'  # Server IP address
+HOST = '10.0.0.1'  # Server IP address
 PORT = 50002
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
