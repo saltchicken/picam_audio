@@ -1,13 +1,18 @@
 import socket
 import pyaudio
 
-print("hello")
-
-# Set up audio capture parameters
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 32000
-CHUNK = int(1024 / 4)
+RATE = 44100
+CHUNK = 1024
+
+p = pyaudio.PyAudio()
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                input=True,
+                frames_per_buffer=CHUNK)
+_ = input_stream.read(CHUNK, exception_on_overflow=False)
 
 # Set up TCP connection
 HOST = '10.0.0.3'  # Server IP address
@@ -16,12 +21,6 @@ client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
 
 # Set up PyAudio for recording
-p = pyaudio.PyAudio()
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                input=True,
-                frames_per_buffer=CHUNK)
 
 try:
     while True:

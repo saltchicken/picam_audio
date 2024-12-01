@@ -1,11 +1,17 @@
 import socket
 import pyaudio
 
-# Set up audio playback parameters
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
-RATE = 32000
-CHUNK = int(1024 / 4)
+RATE = 44100
+CHUNK = 1024
+
+p = pyaudio.PyAudio()
+stream = p.open(format=FORMAT,
+                channels=CHANNELS,
+                rate=RATE,
+                output=True,
+                frames_per_buffer=CHUNK)
 
 # Set up TCP connection
 HOST = '0.0.0.0'  # Listen on all available interfaces
@@ -21,12 +27,6 @@ client_socket, client_address = server_socket.accept()
 print(f"Connection from {client_address}")
 
 # Set up PyAudio for playback
-p = pyaudio.PyAudio()
-stream = p.open(format=FORMAT,
-                channels=CHANNELS,
-                rate=RATE,
-                output=True,
-                frames_per_buffer=CHUNK)
 
 try:
     while True:
