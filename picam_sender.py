@@ -13,13 +13,32 @@ PORT = 50002
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect((HOST, PORT))
 
+
+
+
 # Set up PyAudio for recording
 p = pyaudio.PyAudio()
+
+device_index = 0
+device_count = p.get_device_count()
+
+print("Available audio devices:", flush=True)
+for i in range(device_count):
+    # Get device info by index
+    device_info = p.get_device_info_by_index(i)
+    print(f"Device Index {i}: {device_info['name']}", flush=True)
+    if "pulse" in device_info['name'].lower():
+        print("Pulse found", flush=True)
+        device_index = i
+
+print(f"Using device index {device_index}", flush=True)
+
 stream = p.open(format=FORMAT,
                 channels=CHANNELS,
                 rate=RATE,
                 input=True,
-                frames_per_buffer=CHUNK)
+                frames_per_buffer=CHUNK,
+                input_device_index=device_index)
 _ = stream.read(CHUNK, exception_on_overflow=False)
 
 try:

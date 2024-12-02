@@ -1,15 +1,16 @@
 [Unit]
 Description=Picam Audio
-After=network.target
 
 [Service]
+Environment="PULSE_SERVER=unix:/run/user/1000/pulse/native"
 ExecStart=/usr/bin/python /home/saltchicken/picam_audio/picam_sender.py
 WorkingDirectory=/home/saltchicken/picam_audio
 StandardOutput=journal
 StandardError=journal
 Restart=always
+RestartSec=5s
 User=saltchicken 
-Group=saltchicken
+Group=audio
 
 [Install]
 WantedBy=multi-user.target
