@@ -1,6 +1,10 @@
 import socket
 import pyaudio
 
+
+
+print("picam_audio started", flush=True)
+
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
@@ -21,6 +25,7 @@ p = pyaudio.PyAudio()
 
 device_index = 0
 device_count = p.get_device_count()
+found = False
 
 print("Available audio devices:", flush=True)
 for i in range(device_count):
@@ -28,8 +33,13 @@ for i in range(device_count):
     device_info = p.get_device_info_by_index(i)
     print(f"Device Index {i}: {device_info['name']}", flush=True)
     if "pulse" in device_info['name'].lower():
+        found = True
         print("Pulse found", flush=True)
         device_index = i
+
+if not found:
+    print("Pulse was not found. Exitting...", flush=True)
+    sys.exit(1)
 
 print(f"Using device index {device_index}", flush=True)
 
